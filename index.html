@@ -20,7 +20,7 @@
       background: #111;
       color: #fff;
       padding: 20px 15px;
-      margin: 0 auto 20px;
+      margin: 0 auto 15px;
       max-width: 900px;
       border-radius: 6px;
     }
@@ -32,6 +32,22 @@
       margin: 0;
       font-size: 14px;
       color: #ddd;
+    }
+    .search-wrap {
+      max-width: 900px;
+      margin: 0 auto 15px;
+    }
+    .search-wrap input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      background: #fff;
+    }
+    .search-wrap input:focus {
+      border-color: #111;
     }
     .grid {
       display: grid;
@@ -95,6 +111,13 @@
     .link-btn:hover {
       background: #333;
     }
+    .no-result {
+      text-align: center;
+      color: #666;
+      margin: 30px auto;
+      font-size: 16px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -105,99 +128,140 @@
     <p>Product Price List</p>
   </header>
 
-  <div class="grid">
-
-    <!-- ==================== প্রোডাক্ট ১ / Product 1 ==================== -->
-    <div class="box">
-      <!-- ছবির লিংক বা ফাইলের নাম নিচের src="" এর ভেতরে দিন (Image URL or file name) -->
-      <img src="https://placehold.co/300x300?text=Product+1" alt="Product 1" />
-
-      <!-- প্রোডাক্টের নাম নিচে লিখুন (Product Title) -->
-      <h2>Gadget Name 1</h2>
-
-      <!-- দাম নিচে লিখুন (Price in BDT) -->
-      <p class="price">৳ 0,000</p>
-
-      <!-- কাস্টমার যে লিংকে যাবে সেটি নিচের href="" এর ভেতরে দিন (Order / Contact Link) -->
-      <a href="#" class="link-btn">Order / Link</a>
-    </div>
-
-    <!-- ==================== প্রোডাক্ট ২ / Product 2 ==================== -->
-    <div class="box">
-      <!-- ছবির লিংক বা ফাইলের নাম নিচের src="" এর ভেতরে দিন (Image URL or file name) -->
-      <img src="https://placehold.co/300x300?text=Product+2" alt="Product 2" />
-
-      <!-- প্রোডাক্টের নাম নিচে লিখুন (Product Title) -->
-      <h2>Gadget Name 2</h2>
-
-      <!-- দাম নিচে লিখুন (Price in BDT) -->
-      <p class="price">৳ 0,000</p>
-
-      <!-- কাস্টমার যে লিংকে যাবে সেটি নিচের href="" এর ভেতরে দিন (Order / Contact Link) -->
-      <a href="#" class="link-btn">Order / Link</a>
-    </div>
-
-    <!-- ==================== প্রোডাক্ট ৩ / Product 3 ==================== -->
-    <div class="box">
-      <!-- ছবির লিংক বা ফাইলের নাম নিচের src="" এর ভেতরে দিন (Image URL or file name) -->
-      <img src="https://placehold.co/300x300?text=Product+3" alt="Product 3" />
-
-      <!-- প্রোডাক্টের নাম নিচে লিখুন (Product Title) -->
-      <h2>Gadget Name 3</h2>
-
-      <!-- দাম নিচে লিখুন (Price in BDT) -->
-      <p class="price">৳ 0,000</p>
-
-      <!-- কাস্টমার যে লিংকে যাবে সেটি নিচের href="" এর ভেতরে দিন (Order / Contact Link) -->
-      <a href="#" class="link-btn">Order / Link</a>
-    </div>
-
-    <!-- ==================== প্রোডাক্ট ৪ / Product 4 ==================== -->
-    <div class="box">
-      <!-- ছবির লিংক বা ফাইলের নাম নিচের src="" এর ভেতরে দিন (Image URL or file name) -->
-      <img src="https://placehold.co/300x300?text=Product+4" alt="Product 4" />
-
-      <!-- প্রোডাক্টের নাম নিচে লিখুন (Product Title) -->
-      <h2>Gadget Name 4</h2>
-
-      <!-- দাম নিচে লিখুন (Price in BDT) -->
-      <p class="price">৳ 0,000</p>
-
-      <!-- কাস্টমার যে লিংকে যাবে সেটি নিচের href="" এর ভেতরে দিন (Order / Contact Link) -->
-      <a href="#" class="link-btn">Order / Link</a>
-    </div>
-
-    <!-- ==================== প্রোডাক্ট ৫ / Product 5 ==================== -->
-    <div class="box">
-      <!-- ছবির লিংক বা ফাইলের নাম নিচের src="" এর ভেতরে দিন (Image URL or file name) -->
-      <img src="https://placehold.co/300x300?text=Product+5" alt="Product 5" />
-
-      <!-- প্রোডাক্টের নাম নিচে লিখুন (Product Title) -->
-      <h2>Gadget Name 5</h2>
-
-      <!-- দাম নিচে লিখুন (Price in BDT) -->
-      <p class="price">৳ 0,000</p>
-
-      <!-- কাস্টমার যে লিংকে যাবে সেটি নিচের href="" এর ভেতরে দিন (Order / Contact Link) -->
-      <a href="#" class="link-btn">Order / Link</a>
-    </div>
-
-    <!-- ==================== প্রোডাক্ট ৬ / Product 6 ==================== -->
-    <div class="box">
-      <!-- ছবির লিংক বা ফাইলের নাম নিচের src="" এর ভেতরে দিন (Image URL or file name) -->
-      <img src="https://placehold.co/300x300?text=Product+6" alt="Product 6" />
-
-      <!-- প্রোডাক্টের নাম নিচে লিখুন (Product Title) -->
-      <h2>Gadget Name 6</h2>
-
-      <!-- দাম নিচে লিখুন (Price in BDT) -->
-      <p class="price">৳ 0,000</p>
-
-      <!-- কাস্টমার যে লিংকে যাবে সেটি নিচের href="" এর ভেতরে দিন (Order / Contact Link) -->
-      <a href="#" class="link-btn">Order / Link</a>
-    </div>
-
+  <!-- কাস্টমারের সার্চ বক্স / Customer Search Box -->
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Search product... / প্রোডাক্টের নাম লিখে খুঁজুন..." />
   </div>
+
+  <!-- প্রোডাক্ট কার্ডগুলো এখানে অটোমেটিক দেখাবে -->
+  <div class="grid" id="productGrid"></div>
+  <p class="no-result" id="noResult">কোনো প্রোডাক্ট পাওয়া যায়নি / No product found</p>
+
+  <script>
+    // =========================================================================
+    // নিচের তালিকায় ১ থেকে ৫০ পর্যন্ত প্রোডাক্টের তথ্য পরিবর্তন করুন:
+    // - name: প্রোডাক্টের নাম
+    // - price: প্রোডাক্টের দাম (৳ সহ)
+    // - img: ছবির ফাইলের নাম (যেমন "watch.jpg") অথবা ছবির লিংক
+    // - link: অর্ডার লিংক (যেমন "https://wa.me/8801XXXXXXXXX")
+    // সতর্কতা: শুধু "" (কোটেশন)-এর ভেতরের লেখা বদলাবেন, কমা বা ব্র্যাকেট মুছবেন না!
+    // =========================================================================
+    const products = [
+      /* 01 */ { name: "Gadget Name 1", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+1", link: "#" },
+      /* 02 */ { name: "Gadget Name 2", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+2", link: "#" },
+      /* 03 */ { name: "Gadget Name 3", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+3", link: "#" },
+      /* 04 */ { name: "Gadget Name 4", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+4", link: "#" },
+      /* 05 */ { name: "Gadget Name 5", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+5", link: "#" },
+      /* 06 */ { name: "Gadget Name 6", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+6", link: "#" },
+      /* 07 */ { name: "Gadget Name 7", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+7", link: "#" },
+      /* 08 */ { name: "Gadget Name 8", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+8", link: "#" },
+      /* 09 */ { name: "Gadget Name 9", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+9", link: "#" },
+      /* 10 */ { name: "Gadget Name 10", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+10", link: "#" },
+      /* 11 */ { name: "Gadget Name 11", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+11", link: "#" },
+      /* 12 */ { name: "Gadget Name 12", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+12", link: "#" },
+      /* 13 */ { name: "Gadget Name 13", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+13", link: "#" },
+      /* 14 */ { name: "Gadget Name 14", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+14", link: "#" },
+      /* 15 */ { name: "Gadget Name 15", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+15", link: "#" },
+      /* 16 */ { name: "Gadget Name 16", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+16", link: "#" },
+      /* 17 */ { name: "Gadget Name 17", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+17", link: "#" },
+      /* 18 */ { name: "Gadget Name 18", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+18", link: "#" },
+      /* 19 */ { name: "Gadget Name 19", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+19", link: "#" },
+      /* 20 */ { name: "Gadget Name 20", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+20", link: "#" },
+      /* 21 */ { name: "Gadget Name 21", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+21", link: "#" },
+      /* 22 */ { name: "Gadget Name 22", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+22", link: "#" },
+      /* 23 */ { name: "Gadget Name 23", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+23", link: "#" },
+      /* 24 */ { name: "Gadget Name 24", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+24", link: "#" },
+      /* 25 */ { name: "Gadget Name 25", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+25", link: "#" },
+      /* 26 */ { name: "Gadget Name 26", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+26", link: "#" },
+      /* 27 */ { name: "Gadget Name 27", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+27", link: "#" },
+      /* 28 */ { name: "Gadget Name 28", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+28", link: "#" },
+      /* 29 */ { name: "Gadget Name 29", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+29", link: "#" },
+      /* 30 */ { name: "Gadget Name 30", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+30", link: "#" },
+      /* 31 */ { name: "Gadget Name 31", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+31", link: "#" },
+      /* 32 */ { name: "Gadget Name 32", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+32", link: "#" },
+      /* 33 */ { name: "Gadget Name 33", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+33", link: "#" },
+      /* 34 */ { name: "Gadget Name 34", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+34", link: "#" },
+      /* 35 */ { name: "Gadget Name 35", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+35", link: "#" },
+      /* 36 */ { name: "Gadget Name 36", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+36", link: "#" },
+      /* 37 */ { name: "Gadget Name 37", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+37", link: "#" },
+      /* 38 */ { name: "Gadget Name 38", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+38", link: "#" },
+      /* 39 */ { name: "Gadget Name 39", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+39", link: "#" },
+      /* 40 */ { name: "Gadget Name 40", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+40", link: "#" },
+      /* 41 */ { name: "Gadget Name 41", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+41", link: "#" },
+      /* 42 */ { name: "Gadget Name 42", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+42", link: "#" },
+      /* 43 */ { name: "Gadget Name 43", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+43", link: "#" },
+      /* 44 */ { name: "Gadget Name 44", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+44", link: "#" },
+      /* 45 */ { name: "Gadget Name 45", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+45", link: "#" },
+      /* 46 */ { name: "Gadget Name 46", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+46", link: "#" },
+      /* 47 */ { name: "Gadget Name 47", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+47", link: "#" },
+      /* 48 */ { name: "Gadget Name 48", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+48", link: "#" },
+      /* 49 */ { name: "Gadget Name 49", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+49", link: "#" },
+      /* 50 */ { name: "Gadget Name 50", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+50", link: "#" }
+    ];
+
+    const grid = document.getElementById("productGrid");
+    const noResult = document.getElementById("noResult");
+    const searchInput = document.getElementById("searchInput");
+
+    function renderProducts(list) {
+      grid.innerHTML = "";
+      if (list.length === 0) {
+        noResult.style.display = "block";
+        return;
+      }
+      noResult.style.display = "none";
+
+      list.forEach(function (item) {
+        const box = document.createElement("div");
+        box.className = "box";
+
+        const topWrap = document.createElement("div");
+
+        const img = document.createElement("img");
+        img.src = item.img;
+        img.alt = item.name;
+        img.loading = "lazy";
+
+        const title = document.createElement("h2");
+        title.textContent = item.name;
+
+        topWrap.appendChild(img);
+        topWrap.appendChild(title);
+
+        const bottomWrap = document.createElement("div");
+
+        const price = document.createElement("p");
+        price.className = "price";
+        price.textContent = item.price;
+
+        const btn = document.createElement("a");
+        btn.className = "link-btn";
+        btn.href = item.link || "#";
+        btn.textContent = "Order / Link";
+        if (item.link && item.link !== "#") {
+          btn.target = "_blank";
+          btn.rel = "noopener noreferrer";
+        }
+
+        bottomWrap.appendChild(price);
+        bottomWrap.appendChild(btn);
+
+        box.appendChild(topWrap);
+        box.appendChild(bottomWrap);
+        grid.appendChild(box);
+      });
+    }
+
+    searchInput.addEventListener("input", function () {
+      const query = searchInput.value.trim().toLowerCase();
+      const filtered = products.filter(function (item) {
+        return item.name.toLowerCase().includes(query);
+      });
+      renderProducts(filtered);
+    });
+
+    renderProducts(products);
+  </script>
 
 </body>
 </html>
