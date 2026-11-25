@@ -18,7 +18,7 @@
     /* হেডার ব্যানার লোগো */
     .banner-header {
       max-width: 900px;
-      margin: 0 auto 15px;
+      margin: 0 auto 12px;
       border-radius: 8px;
       overflow: hidden;
       background: #060b14;
@@ -44,6 +44,63 @@
       font-size: 14px;
       color: #ddd;
     }
+
+    /* ক্যাটাগরি মেনু বাটন ও ড্রপডাউন */
+    .cat-wrap {
+      max-width: 900px;
+      margin: 0 auto 12px;
+      position: relative;
+    }
+    .cat-toggle {
+      width: 100%;
+      background: #111;
+      color: #fff;
+      border: 2px solid #0088ff;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .cat-menu {
+      display: none;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 6px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .cat-menu.open {
+      display: grid;
+    }
+    @media (min-width: 700px) {
+      .cat-menu {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    .cat-item {
+      background: #f3f4f6;
+      color: #222;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px 8px;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+    }
+    .cat-item.active {
+      background: #0088ff;
+      color: #fff;
+      border-color: #0088ff;
+    }
+
     /* সার্চ বক্স */
     .search-wrap {
       max-width: 900px;
@@ -61,6 +118,7 @@
     .search-wrap input:focus {
       border-color: #0088ff;
     }
+
     /* প্রোডাক্ট গ্রিড */
     .grid {
       display: grid;
@@ -142,10 +200,20 @@
     }
     .no-result {
       text-align: center;
-      color: #666;
+      color: #555;
       margin: 30px auto;
-      font-size: 16px;
+      font-size: 15px;
       display: none;
+    }
+    .reset-btn {
+      margin-top: 10px;
+      background: #0088ff;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
     }
 
     /* ফুল-স্ক্রিন ফটো ভিউয়ার (Lightbox) */
@@ -246,7 +314,7 @@
 </head>
 <body>
 
-  <!-- হেডার লোগো ব্যানার (GitHub-এ banner.jpg নামে আপলোড করুন) -->
+  <!-- হেডার লোগো ব্যানার -->
   <header class="banner-header">
     <img
       src="banner.jpg"
@@ -259,14 +327,26 @@
     </div>
   </header>
 
-  <!-- কাস্টমারের সার্চ বক্স / Customer Search Box -->
+  <!-- ক্যাটাগরি লিস্ট বাটন -->
+  <div class="cat-wrap">
+    <button class="cat-toggle" id="catToggle" type="button">
+      <span id="catToggleText">☰ Categories / ক্যাটাগরি দেখুন</span>
+      <span id="catArrow">▾</span>
+    </button>
+    <div class="cat-menu" id="catMenu"></div>
+  </div>
+
+  <!-- কাস্টমারের সার্চ বক্স -->
   <div class="search-wrap">
     <input type="text" id="searchInput" placeholder="Search product... / প্রোডাক্টের নাম লিখে খুঁজুন..." />
   </div>
 
-  <!-- প্রোডাক্ট কার্ডগুলো এখানে অটোমেটিক দেখাবে -->
+  <!-- প্রোডাক্ট গ্রিড -->
   <div class="grid" id="productGrid"></div>
-  <p class="no-result" id="noResult">কোনো প্রোডাক্ট পাওয়া যায়নি / No product found</p>
+  <div class="no-result" id="noResult">
+    <p>এই ক্যাটাগরি বা নামে কোনো প্রোডাক্ট পাওয়া যায়নি</p>
+    <button class="reset-btn" id="resetBtn" type="button">সব প্রোডাক্ট দেখুন / Show All</button>
+  </div>
 
   <!-- ফুল-স্ক্রিন ছবি দেখার বক্স (Lightbox) -->
   <div class="lightbox" id="lightbox">
@@ -290,71 +370,90 @@
   </div>
 
   <script>
+    // ক্যাটাগরি তালিকা
+    const categories = [
+      "All Products",
+      "Earbuds",
+      "Neckband",
+      "Headphones",
+      "Earphones",
+      "Chargers",
+      "Power Banks",
+      "Smart Watch",
+      "Microphone"
+    ];
+
     // =========================================================================
-    // নিচের তালিকায় ১ থেকে ৫০ পর্যন্ত প্রোডাক্টের তথ্য পরিবর্তন করুন:
+    // নিচের তালিকায় ১ থেকে ৫০ পর্যন্ত প্রোডাক্টের তথ্য দিন:
+    // - cat: উপরের ৮টি ক্যাটাগরির যেকোনো ১টি নাম লিখুন (যেমন "Chargers", "Earbuds")
     // - name: প্রোডাক্টের নাম
     // - price: প্রোডাক্টের দাম (৳ সহ)
     // - img: ১টি ছবির জন্য -> "watch.jpg"
     //        ২-৩টি ছবির জন্য -> ["watch1.jpg", "watch2.jpg", "watch3.jpg"]
     // - link: অর্ডার লিংক (যেমন "https://wa.me/8801XXXXXXXXX")
-    // সতর্কতা: শুধু "" (কোটেশন)-এর ভেতরের লেখা বদলাবেন, কমা বা ব্র্যাকেট মুছবেন না!
     // =========================================================================
     const products = [
-      /* 01 */ { name: "Ven-Dens wireless headphone VD HP019", price: "৳ 950", img: "Ven-Dens wireless headphone.jpg", link: "https://wa.me/8801868963749" },
-      /* 02 */ { name: "Gadget Name 2", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+2", link: "#" },
-      /* 03 */ { name: "Gadget Name 3", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+3", link: "#" },
-      /* 04 */ { name: "Gadget Name 4", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+4", link: "#" },
-      /* 05 */ { name: "Gadget Name 5", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+5", link: "#" },
-      /* 06 */ { name: "Gadget Name 6", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+6", link: "#" },
-      /* 07 */ { name: "Gadget Name 7", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+7", link: "#" },
-      /* 08 */ { name: "Gadget Name 8", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+8", link: "#" },
-      /* 09 */ { name: "Gadget Name 9", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+9", link: "#" },
-      /* 10 */ { name: "Gadget Name 10", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+10", link: "#" },
-      /* 11 */ { name: "Gadget Name 11", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+11", link: "#" },
-      /* 12 */ { name: "Gadget Name 12", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+12", link: "#" },
-      /* 13 */ { name: "Gadget Name 13", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+13", link: "#" },
-      /* 14 */ { name: "Gadget Name 14", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+14", link: "#" },
-      /* 15 */ { name: "Gadget Name 15", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+15", link: "#" },
-      /* 16 */ { name: "Gadget Name 16", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+16", link: "#" },
-      /* 17 */ { name: "Gadget Name 17", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+17", link: "#" },
-      /* 18 */ { name: "Gadget Name 18", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+18", link: "#" },
-      /* 19 */ { name: "Gadget Name 19", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+19", link: "#" },
-      /* 20 */ { name: "Gadget Name 20", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+20", link: "#" },
-      /* 21 */ { name: "Gadget Name 21", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+21", link: "#" },
-      /* 22 */ { name: "Gadget Name 22", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+22", link: "#" },
-      /* 23 */ { name: "Gadget Name 23", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+23", link: "#" },
-      /* 24 */ { name: "Gadget Name 24", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+24", link: "#" },
-      /* 25 */ { name: "Gadget Name 25", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+25", link: "#" },
-      /* 26 */ { name: "Gadget Name 26", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+26", link: "#" },
-      /* 27 */ { name: "Gadget Name 27", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+27", link: "#" },
-      /* 28 */ { name: "Gadget Name 28", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+28", link: "#" },
-      /* 29 */ { name: "Gadget Name 29", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+29", link: "#" },
-      /* 30 */ { name: "Gadget Name 30", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+30", link: "#" },
-      /* 31 */ { name: "Gadget Name 31", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+31", link: "#" },
-      /* 32 */ { name: "Gadget Name 32", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+32", link: "#" },
-      /* 33 */ { name: "Gadget Name 33", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+33", link: "#" },
-      /* 34 */ { name: "Gadget Name 34", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+34", link: "#" },
-      /* 35 */ { name: "Gadget Name 35", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+35", link: "#" },
-      /* 36 */ { name: "Gadget Name 36", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+36", link: "#" },
-      /* 37 */ { name: "Gadget Name 37", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+37", link: "#" },
-      /* 38 */ { name: "Gadget Name 38", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+38", link: "#" },
-      /* 39 */ { name: "Gadget Name 39", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+39", link: "#" },
-      /* 40 */ { name: "Gadget Name 40", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+40", link: "#" },
-      /* 41 */ { name: "Gadget Name 41", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+41", link: "#" },
-      /* 42 */ { name: "Gadget Name 42", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+42", link: "#" },
-      /* 43 */ { name: "Gadget Name 43", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+43", link: "#" },
-      /* 44 */ { name: "Gadget Name 44", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+44", link: "#" },
-      /* 45 */ { name: "Gadget Name 45", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+45", link: "#" },
-      /* 46 */ { name: "Gadget Name 46", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+46", link: "#" },
-      /* 47 */ { name: "Gadget Name 47", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+47", link: "#" },
-      /* 48 */ { name: "Gadget Name 48", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+48", link: "#" },
-      /* 49 */ { name: "Gadget Name 49", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+49", link: "#" },
-      /* 50 */ { name: "Gadget Name 50", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+50", link: "#" }
+      /* 01 */ { cat: "Headphones", name: "Ven-Dens wireless headphone VD HP019", price: "৳ 950", img: "Ven-Dens wireless headphone.jpg", link: "https://wa.me/8801868963749" },
+      /* 02 */ { cat: "", name: "Gadget Name 2", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+2", link: "#" },
+      /* 03 */ { cat: "", name: "Gadget Name 3", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+3", link: "#" },
+      /* 04 */ { cat: "", name: "Gadget Name 4", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+4", link: "#" },
+      /* 05 */ { cat: "", name: "Gadget Name 5", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+5", link: "#" },
+      /* 06 */ { cat: "", name: "Gadget Name 6", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+6", link: "#" },
+      /* 07 */ { cat: "", name: "Gadget Name 7", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+7", link: "#" },
+      /* 08 */ { cat: "", name: "Gadget Name 8", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+8", link: "#" },
+      /* 09 */ { cat: "", name: "Gadget Name 9", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+9", link: "#" },
+      /* 10 */ { cat: "", name: "Gadget Name 10", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+10", link: "#" },
+      /* 11 */ { cat: "", name: "Gadget Name 11", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+11", link: "#" },
+      /* 12 */ { cat: "", name: "Gadget Name 12", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+12", link: "#" },
+      /* 13 */ { cat: "", name: "Gadget Name 13", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+13", link: "#" },
+      /* 14 */ { cat: "", name: "Gadget Name 14", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+14", link: "#" },
+      /* 15 */ { cat: "", name: "Gadget Name 15", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+15", link: "#" },
+      /* 16 */ { cat: "", name: "Gadget Name 16", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+16", link: "#" },
+      /* 17 */ { cat: "", name: "Gadget Name 17", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+17", link: "#" },
+      /* 18 */ { cat: "", name: "Gadget Name 18", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+18", link: "#" },
+      /* 19 */ { cat: "", name: "Gadget Name 19", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+19", link: "#" },
+      /* 20 */ { cat: "", name: "Gadget Name 20", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+20", link: "#" },
+      /* 21 */ { cat: "", name: "Gadget Name 21", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+21", link: "#" },
+      /* 22 */ { cat: "", name: "Gadget Name 22", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+22", link: "#" },
+      /* 23 */ { cat: "", name: "Gadget Name 23", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+23", link: "#" },
+      /* 24 */ { cat: "", name: "Gadget Name 24", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+24", link: "#" },
+      /* 25 */ { cat: "", name: "Gadget Name 25", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+25", link: "#" },
+      /* 26 */ { cat: "", name: "Gadget Name 26", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+26", link: "#" },
+      /* 27 */ { cat: "", name: "Gadget Name 27", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+27", link: "#" },
+      /* 28 */ { cat: "", name: "Gadget Name 28", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+28", link: "#" },
+      /* 29 */ { cat: "", name: "Gadget Name 29", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+29", link: "#" },
+      /* 30 */ { cat: "", name: "Gadget Name 30", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+30", link: "#" },
+      /* 31 */ { cat: "", name: "Gadget Name 31", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+31", link: "#" },
+      /* 32 */ { cat: "", name: "Gadget Name 32", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+32", link: "#" },
+      /* 33 */ { cat: "", name: "Gadget Name 33", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+33", link: "#" },
+      /* 34 */ { cat: "", name: "Gadget Name 34", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+34", link: "#" },
+      /* 35 */ { cat: "", name: "Gadget Name 35", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+35", link: "#" },
+      /* 36 */ { cat: "", name: "Gadget Name 36", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+36", link: "#" },
+      /* 37 */ { cat: "", name: "Gadget Name 37", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+37", link: "#" },
+      /* 38 */ { cat: "", name: "Gadget Name 38", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+38", link: "#" },
+      /* 39 */ { cat: "", name: "Gadget Name 39", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+39", link: "#" },
+      /* 40 */ { cat: "", name: "Gadget Name 40", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+40", link: "#" },
+      /* 41 */ { cat: "", name: "Gadget Name 41", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+41", link: "#" },
+      /* 42 */ { cat: "", name: "Gadget Name 42", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+42", link: "#" },
+      /* 43 */ { cat: "", name: "Gadget Name 43", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+43", link: "#" },
+      /* 44 */ { cat: "", name: "Gadget Name 44", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+44", link: "#" },
+      /* 45 */ { cat: "", name: "Gadget Name 45", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+45", link: "#" },
+      /* 46 */ { cat: "", name: "Gadget Name 46", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+46", link: "#" },
+      /* 47 */ { cat: "", name: "Gadget Name 47", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+47", link: "#" },
+      /* 48 */ { cat: "", name: "Gadget Name 48", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+48", link: "#" },
+      /* 49 */ { cat: "", name: "Gadget Name 49", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+49", link: "#" },
+      /* 50 */ { cat: "", name: "Gadget Name 50", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+50", link: "#" }
     ];
 
     const grid = document.getElementById("productGrid");
     const noResult = document.getElementById("noResult");
+    const resetBtn = document.getElementById("resetBtn");
     const searchInput = document.getElementById("searchInput");
+
+    const catToggle = document.getElementById("catToggle");
+    const catToggleText = document.getElementById("catToggleText");
+    const catArrow = document.getElementById("catArrow");
+    const catMenu = document.getElementById("catMenu");
 
     const lightbox = document.getElementById("lightbox");
     const lbImg = document.getElementById("lbImg");
@@ -366,8 +465,53 @@
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
 
+    let selectedCategory = "All Products";
     let currentImages = [];
     let currentIndex = 0;
+
+    function normalizeCat(str) {
+      return (str || "")
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/neckbend/g, "neckband")
+        .replace(/s$/, "");
+    }
+
+    function renderCategories() {
+      catMenu.innerHTML = "";
+      categories.forEach(function (cat) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "cat-item" + (cat === selectedCategory ? " active" : "");
+        btn.textContent = cat;
+        btn.addEventListener("click", function () {
+          selectedCategory = cat;
+          catMenu.classList.remove("open");
+          catArrow.textContent = "▾";
+          if (cat === "All Products") {
+            catToggleText.textContent = "☰ Categories / ক্যাটাগরি দেখুন";
+          } else {
+            catToggleText.textContent = "☰ Category: " + cat;
+          }
+          renderCategories();
+          filterAndRender();
+        });
+        catMenu.appendChild(btn);
+      });
+    }
+
+    catToggle.addEventListener("click", function () {
+      const isOpen = catMenu.classList.toggle("open");
+      catArrow.textContent = isOpen ? "▴" : "▾";
+    });
+
+    resetBtn.addEventListener("click", function () {
+      selectedCategory = "All Products";
+      searchInput.value = "";
+      catToggleText.textContent = "☰ Categories / ক্যাটাগরি দেখুন";
+      renderCategories();
+      filterAndRender();
+    });
 
     function getImages(item) {
       if (Array.isArray(item.img)) {
@@ -418,14 +562,12 @@
     prevBtn.addEventListener("click", showPrev);
     nextBtn.addEventListener("click", showNext);
 
-    // ছবির বাইরের কালো জায়গায় ক্লিক করলে বন্ধ হবে
     lbImgArea.addEventListener("click", function (e) {
       if (e.target === lbImgArea) {
         closeLightbox();
       }
     });
 
-    // মোবাইলে ডানে-বামে সোয়াইপ (Swipe) সাপোর্ট
     let touchStartX = 0;
     lbImgArea.addEventListener("touchstart", function (e) {
       touchStartX = e.changedTouches[0].screenX;
@@ -438,7 +580,6 @@
       else if (diff < -40) showNext();
     }, { passive: true });
 
-    // কিবোর্ড (Esc, Left, Right) সাপোর্ট
     document.addEventListener("keydown", function (e) {
       if (!lightbox.classList.contains("open")) return;
       if (e.key === "Escape") closeLightbox();
@@ -511,15 +652,23 @@
       });
     }
 
-    searchInput.addEventListener("input", function () {
+    function filterAndRender() {
       const query = searchInput.value.trim().toLowerCase();
-      const filtered = products.filter(function (item) {
-        return item.name.toLowerCase().includes(query);
-      });
-      renderProducts(filtered);
-    });
+      const targetCat = normalizeCat(selectedCategory);
 
-    renderProducts(products);
+      const filtered = products.filter(function (item) {
+        const matchesCat = selectedCategory === "All Products" || normalizeCat(item.cat) === targetCat;
+        const matchesSearch = item.name.toLowerCase().includes(query);
+        return matchesCat && matchesSearch;
+      });
+
+      renderProducts(filtered);
+    }
+
+    searchInput.addEventListener("input", filterAndRender);
+
+    renderCategories();
+    filterAndRender();
   </script>
 
 </body>
