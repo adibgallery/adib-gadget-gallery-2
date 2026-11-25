@@ -211,10 +211,22 @@
       background: #111;
       color: #fff;
       text-decoration: none;
-      padding: 8px 14px;
+      padding: 9px 16px;
       margin-top: 6px;
-      border-radius: 4px;
+      border-radius: 5px;
       font-size: 14px;
+      font-weight: bold;
+    }
+    .link-btn:hover {
+      background: #0088ff;
+    }
+    .link-btn.sold-btn {
+      background: #d1d5db;
+      color: #555;
+      cursor: default;
+    }
+    .link-btn.sold-btn:hover {
+      background: #d1d5db;
     }
     .status-msg {
       text-align: center;
@@ -641,12 +653,7 @@
       <div class="form-group">
         <label for="pFiles">৪. প্রোডাক্টের ছবি সিলেক্ট করুন (১টি বা ২-৩টি একসাথে) *</label>
         <input type="file" id="pFiles" accept="image/*" multiple />
-        <div class="admin-note" id="photoNote">গ্যালারি থেকে একসাথে একাধিক ছবিও সিলেক্ট করতে পারবেন। ছবি অটোমেটিক ছোট হয়ে সেভ হবে।</div>
-      </div>
-
-      <div class="form-group">
-        <label for="pLink">৫. অর্ডার লিংক (ইচ্ছা হলে দিন, না দিলে খালি রাখুন)</label>
-        <input type="text" id="pLink" placeholder="যেমন: https://wa.me/8801868963749" />
+        <div class="admin-note" id="photoNote">গ্যালারি থেকে একসাথে একাধিক ছবিও সিলেক্ট করতে পারবেন। সব প্রোডাক্টে অটোমেটিক আপনার WhatsApp (01868963749) Order Now বাটন যুক্ত হয়ে যাবে।</div>
       </div>
 
       <div class="btn-row">
@@ -710,7 +717,8 @@
   </div>
 
   <script>
-    // Supabase কানেকশন
+    // আপনার ফিক্সড WhatsApp নম্বর (88 সহ) ও Supabase কানেকশন
+    const SHOP_WHATSAPP = "8801868963749";
     const SUPABASE_URL = "https://hmhnmbrlktvgxqqcokwe.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_1MEJRrIvv1mB1MCXtwCWLA_fCmREPnk";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
@@ -760,7 +768,6 @@
     const pPrice = document.getElementById("pPrice");
     const pFiles = document.getElementById("pFiles");
     const photoNote = document.getElementById("photoNote");
-    const pLink = document.getElementById("pLink");
     const saveProductBtn = document.getElementById("saveProductBtn");
     const cancelEditBtn = document.getElementById("cancelEditBtn");
     const adminStatus = document.getElementById("adminStatus");
@@ -902,11 +909,20 @@
         price.textContent = item.price;
         bottomWrap.appendChild(price);
 
-        if (item.link && item.link !== "#") {
+        if (item.sold_out) {
+          const soldBtn = document.createElement("span");
+          soldBtn.className = "link-btn sold-btn";
+          soldBtn.textContent = "Sold Out";
+          bottomWrap.appendChild(soldBtn);
+        } else {
+          const waText = encodeURIComponent(
+            "Assalamu Alaikum, ami ei product-ti order korte chai:\n" +
+            item.name + " (" + item.price + ")"
+          );
           const btn = document.createElement("a");
           btn.className = "link-btn";
-          btn.href = item.link;
-          btn.textContent = "Order / Link";
+          btn.href = "https://wa.me/" + SHOP_WHATSAPP + "?text=" + waText;
+          btn.textContent = "Order Now";
           btn.target = "_blank";
           btn.rel = "noopener noreferrer";
           bottomWrap.appendChild(btn);
@@ -1008,7 +1024,7 @@
 
       if (error) {
         statusMsg.style.display = "block";
-        statusMsg.textContent = "ডাটা লোড করতে সমস্যা হয়েছে, পেজটি আবার রিফ্রেশ করুন।";
+        statusMsg.textContent = "ডাটা লোড সমস্যা: " + error.message;
         return;
       }
 
@@ -1163,8 +1179,7 @@
       pName.value = "";
       pPrice.value = "";
       pFiles.value = "";
-      pLink.value = "";
-      photoNote.textContent = "গ্যালারি থেকে একসাথে একাধিক ছবিও সিলেক্ট করতে পারবেন। ছবি অটোমেটিক ছোট হয়ে সেভ হবে।";
+      photoNote.textContent = "গ্যালারি থেকে একসাথে একাধিক ছবিও সিলেক্ট করতে পারবেন। সব প্রোডাক্টে অটোমেটিক আপনার WhatsApp (01868963749) Order Now বাটন যুক্ত হয়ে যাবে।";
       saveProductBtn.textContent = "💾 Save / আপলোড করুন";
       cancelEditBtn.style.display = "none";
     }
@@ -1178,7 +1193,6 @@
       const cat = pCat.value;
       const name = pName.value.trim();
       let price = pPrice.value.trim();
-      let link = pLink.value.trim();
       const files = pFiles.files;
 
       if (!name || !price) {
@@ -1188,10 +1202,6 @@
 
       if (!price.includes("৳")) {
         price = "৳ " + price;
-      }
-
-      if (!link) {
-        link = "#";
       }
 
       if (!editingProduct && files.length === 0) {
@@ -1216,7 +1226,7 @@
         if (editingProduct) {
           const { error } = await sb
             .from("products")
-            .update({ cat, name, price, imgs: finalImgs, link })
+            .update({ cat, name, price, imgs: finalImgs, link: "#" })
             .eq("id", editingProduct.id);
 
           if (error) throw error;
@@ -1224,7 +1234,7 @@
         } else {
           const { error } = await sb
             .from("products")
-            .insert([{ cat, name, price, imgs: finalImgs, sold_out: false, link }]);
+            .insert([{ cat, name, price, imgs: finalImgs, sold_out: false, link: "#" }]);
 
           if (error) throw error;
           adminStatus.textContent = "✅ নতুন প্রোডাক্ট ওয়েবসাইটে যোগ হয়ে গেছে!";
@@ -1324,7 +1334,6 @@
           pCat.value = item.cat || "Earbuds";
           pName.value = item.name || "";
           pPrice.value = item.price || "";
-          pLink.value = (item.link && item.link !== "#") ? item.link : "";
           pFiles.value = "";
           photoNote.textContent = "নতুন ছবি সিলেক্ট না করলে আগের ছবিগুলোই থেকে যাবে। নতুন দিলে আগের ছবি বদলে যাবে।";
           saveProductBtn.textContent = "✅ আপডেট সেভ করুন";
