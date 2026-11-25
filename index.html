@@ -15,24 +15,36 @@
       padding: 15px;
       color: #222;
     }
-    header {
+    /* হেডার ব্যানার লোগো */
+    .banner-header {
+      max-width: 900px;
+      margin: 0 auto 15px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #060b14;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+    .banner-header img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .fallback-header {
       text-align: center;
       background: #111;
       color: #fff;
       padding: 20px 15px;
-      margin: 0 auto 15px;
-      max-width: 900px;
-      border-radius: 6px;
     }
-    header h1 {
+    .fallback-header h1 {
       margin: 0 0 6px;
       font-size: 24px;
     }
-    header p {
+    .fallback-header p {
       margin: 0;
       font-size: 14px;
       color: #ddd;
     }
+    /* সার্চ বক্স */
     .search-wrap {
       max-width: 900px;
       margin: 0 auto 15px;
@@ -47,8 +59,9 @@
       background: #fff;
     }
     .search-wrap input:focus {
-      border-color: #111;
+      border-color: #0088ff;
     }
+    /* প্রোডাক্ট গ্রিড */
     .grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -75,17 +88,33 @@
       flex-direction: column;
       justify-content: space-between;
     }
+    .img-wrap {
+      position: relative;
+      cursor: pointer;
+    }
     .box img {
       width: 100%;
       height: 160px;
       object-fit: cover;
       border-radius: 4px;
       background: #eee;
+      display: block;
     }
     @media (min-width: 700px) {
       .box img {
         height: 180px;
       }
+    }
+    .multi-badge {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(0, 0, 0, 0.72);
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 12px;
+      pointer-events: none;
     }
     .box h2 {
       font-size: 16px;
@@ -118,14 +147,116 @@
       font-size: 16px;
       display: none;
     }
+
+    /* ফুল-স্ক্রিন ফটো ভিউয়ার (Lightbox) */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.94);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+    }
+    .lightbox.open {
+      display: flex;
+    }
+    .lb-top {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+    }
+    .lb-info {
+      text-align: left;
+      overflow: hidden;
+    }
+    .lb-title {
+      font-size: 15px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lb-price {
+      font-size: 14px;
+      color: #4ade80;
+      font-weight: bold;
+      margin-top: 2px;
+    }
+    .lb-close {
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .lb-img-area {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 10px 0;
+    }
+    .lb-img-area img {
+      max-width: 100%;
+      max-height: 72vh;
+      object-fit: contain;
+      border-radius: 6px;
+      user-select: none;
+    }
+    .lb-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 6px 0 10px;
+    }
+    .lb-btn {
+      background: #0088ff;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .lb-btn:active {
+      background: #0066cc;
+    }
+    .lb-counter {
+      color: #ddd;
+      font-size: 13px;
+      min-width: 45px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ওয়েবসাইটের নাম ও সাবটাইটেল / Website Name & Subtitle -->
-  <header>
-    <h1>Adib Gadget Gallery-2</h1>
-    <p>Product Price List</p>
+  <!-- হেডার লোগো ব্যানার (GitHub-এ banner.jpg নামে আপলোড করুন) -->
+  <header class="banner-header">
+    <img
+      src="banner.jpg"
+      alt="Adib Gadget Gallery-2"
+      onerror="this.style.display='none'; document.getElementById('fallbackHeader').style.display='block';"
+    />
+    <div id="fallbackHeader" class="fallback-header" style="display:none;">
+      <h1>Adib Gadget Gallery-2</h1>
+      <p>Product Price List</p>
+    </div>
   </header>
 
   <!-- কাস্টমারের সার্চ বক্স / Customer Search Box -->
@@ -137,17 +268,39 @@
   <div class="grid" id="productGrid"></div>
   <p class="no-result" id="noResult">কোনো প্রোডাক্ট পাওয়া যায়নি / No product found</p>
 
+  <!-- ফুল-স্ক্রিন ছবি দেখার বক্স (Lightbox) -->
+  <div class="lightbox" id="lightbox">
+    <div class="lb-top">
+      <div class="lb-info">
+        <div class="lb-title" id="lbTitle"></div>
+        <div class="lb-price" id="lbPrice"></div>
+      </div>
+      <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+    </div>
+
+    <div class="lb-img-area" id="lbImgArea">
+      <img id="lbImg" src="" alt="Product Preview" />
+    </div>
+
+    <div class="lb-bottom" id="lbControls">
+      <button class="lb-btn" id="prevBtn">◀ Prev</button>
+      <span class="lb-counter" id="lbCounter">1 / 1</span>
+      <button class="lb-btn" id="nextBtn">Next ▶</button>
+    </div>
+  </div>
+
   <script>
     // =========================================================================
     // নিচের তালিকায় ১ থেকে ৫০ পর্যন্ত প্রোডাক্টের তথ্য পরিবর্তন করুন:
     // - name: প্রোডাক্টের নাম
     // - price: প্রোডাক্টের দাম (৳ সহ)
-    // - img: ছবির ফাইলের নাম (যেমন "watch.jpg") অথবা ছবির লিংক
+    // - img: ১টি ছবির জন্য -> "watch.jpg"
+    //        ২-৩টি ছবির জন্য -> ["watch1.jpg", "watch2.jpg", "watch3.jpg"]
     // - link: অর্ডার লিংক (যেমন "https://wa.me/8801XXXXXXXXX")
     // সতর্কতা: শুধু "" (কোটেশন)-এর ভেতরের লেখা বদলাবেন, কমা বা ব্র্যাকেট মুছবেন না!
     // =========================================================================
     const products = [
-      /* 01 */ { name: "Ven-Dens wireless headphone", price: "৳ 950", img: "Ven-Dens wireless headphone.jpg", link: "https://wa.me/8801868963749" },
+      /* 01 */ { name: "Ven-Dens wireless headphone VD HP019", price: "৳ 950", img: "Ven-Dens wireless headphone VD HP019.jpg", link: "https://wa.me/8801868963749" },
       /* 02 */ { name: "Gadget Name 2", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+2", link: "#" },
       /* 03 */ { name: "Gadget Name 3", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+3", link: "#" },
       /* 04 */ { name: "Gadget Name 4", price: "৳ 0,000", img: "https://placehold.co/300x300?text=Product+4", link: "#" },
@@ -203,6 +356,96 @@
     const noResult = document.getElementById("noResult");
     const searchInput = document.getElementById("searchInput");
 
+    const lightbox = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lbImg");
+    const lbTitle = document.getElementById("lbTitle");
+    const lbPrice = document.getElementById("lbPrice");
+    const lbCounter = document.getElementById("lbCounter");
+    const lbClose = document.getElementById("lbClose");
+    const lbImgArea = document.getElementById("lbImgArea");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let currentImages = [];
+    let currentIndex = 0;
+
+    function getImages(item) {
+      if (Array.isArray(item.img)) {
+        return item.img.length > 0 ? item.img : [""];
+      }
+      return [item.img || ""];
+    }
+
+    function updateLightboxImage() {
+      lbImg.src = currentImages[currentIndex];
+      lbCounter.textContent = (currentIndex + 1) + " / " + currentImages.length;
+
+      if (currentImages.length > 1) {
+        prevBtn.style.display = "inline-block";
+        nextBtn.style.display = "inline-block";
+      } else {
+        prevBtn.style.display = "none";
+        nextBtn.style.display = "none";
+      }
+    }
+
+    function openLightbox(item) {
+      currentImages = getImages(item);
+      currentIndex = 0;
+      lbTitle.textContent = item.name;
+      lbPrice.textContent = item.price;
+      updateLightboxImage();
+      lightbox.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length;
+      updateLightboxImage();
+    }
+
+    function showNext() {
+      currentIndex = (currentIndex + 1) % currentImages.length;
+      updateLightboxImage();
+    }
+
+    lbClose.addEventListener("click", closeLightbox);
+    prevBtn.addEventListener("click", showPrev);
+    nextBtn.addEventListener("click", showNext);
+
+    // ছবির বাইরের কালো জায়গায় ক্লিক করলে বন্ধ হবে
+    lbImgArea.addEventListener("click", function (e) {
+      if (e.target === lbImgArea) {
+        closeLightbox();
+      }
+    });
+
+    // মোবাইলে ডানে-বামে সোয়াইপ (Swipe) সাপোর্ট
+    let touchStartX = 0;
+    lbImgArea.addEventListener("touchstart", function (e) {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    lbImgArea.addEventListener("touchend", function (e) {
+      if (currentImages.length <= 1) return;
+      const diff = e.changedTouches[0].screenX - touchStartX;
+      if (diff > 40) showPrev();
+      else if (diff < -40) showNext();
+    }, { passive: true });
+
+    // কিবোর্ড (Esc, Left, Right) সাপোর্ট
+    document.addEventListener("keydown", function (e) {
+      if (!lightbox.classList.contains("open")) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft" && currentImages.length > 1) showPrev();
+      if (e.key === "ArrowRight" && currentImages.length > 1) showNext();
+    });
+
     function renderProducts(list) {
       grid.innerHTML = "";
       if (list.length === 0) {
@@ -212,20 +455,36 @@
       noResult.style.display = "none";
 
       list.forEach(function (item) {
+        const imgs = getImages(item);
+
         const box = document.createElement("div");
         box.className = "box";
 
         const topWrap = document.createElement("div");
 
+        const imgWrap = document.createElement("div");
+        imgWrap.className = "img-wrap";
+        imgWrap.addEventListener("click", function () {
+          openLightbox(item);
+        });
+
         const img = document.createElement("img");
-        img.src = item.img;
+        img.src = imgs[0];
         img.alt = item.name;
         img.loading = "lazy";
+        imgWrap.appendChild(img);
+
+        if (imgs.length > 1) {
+          const badge = document.createElement("span");
+          badge.className = "multi-badge";
+          badge.textContent = "📷 " + imgs.length;
+          imgWrap.appendChild(badge);
+        }
 
         const title = document.createElement("h2");
         title.textContent = item.name;
 
-        topWrap.appendChild(img);
+        topWrap.appendChild(imgWrap);
         topWrap.appendChild(title);
 
         const bottomWrap = document.createElement("div");
