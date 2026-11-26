@@ -39,7 +39,7 @@
     /* হেডার ব্যানার লোগো */
     .banner-header {
       max-width: 900px;
-      margin: 0 auto 12px;
+      margin: 0 auto 10px;
       border-radius: 8px;
       overflow: hidden;
       background: #060b14;
@@ -64,6 +64,37 @@
       margin: 0;
       font-size: 14px;
       color: #ddd;
+    }
+
+    /* চলমান দোকানের ঠিকানা (ডান থেকে বামে অ্যানিমেশন) */
+    .address-bar {
+      max-width: 900px;
+      margin: 0 auto 12px;
+      background: #0b1628;
+      color: #e0f2fe;
+      border: 1px solid #0088ff;
+      border-radius: 6px;
+      padding: 8px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .address-track {
+      display: inline-block;
+      padding-left: 100%;
+      animation: slideLeft 18s linear infinite;
+    }
+    .address-bar:hover .address-track {
+      animation-play-state: paused;
+    }
+    @keyframes slideLeft {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-100%);
+      }
     }
 
     /* ক্যাটাগরি মেনু */
@@ -809,6 +840,13 @@
       </div>
     </header>
 
+    <!-- চলমান দোকানের ঠিকানা -->
+    <div class="address-bar">
+      <div class="address-track">
+        📍 দোকানের ঠিকানা : করিম উল্লাহ মার্কেট , ৪র্থ তলা, C-১১০, আদিব গেজেট গ্যালারি - ২ , বন্দরবাজার, সিলেট।
+      </div>
+    </div>
+
     <div class="cat-wrap">
       <button class="cat-toggle" id="catToggle" type="button">
         <span id="catToggleText">☰ Categories / ক্যাটাগরি দেখুন</span>
@@ -1116,9 +1154,12 @@
         soldBtn.textContent = "Sold Out";
         return soldBtn;
       }
+      const imgs = getImages(item);
       const waText = encodeURIComponent(
-        "Assalamu Alaikum, ami ei product-ti order korte chai:\n" +
-        item.name + " (" + item.price + ")"
+        "আসসালামুআলাইকুম, আমি এই প্রোডাক্টটি অর্ডার করতে চাই:\n" +
+        "প্রোডাক্ট: " + item.name + "\n" +
+        "দাম: " + item.price + "\n" +
+        "ছবি: " + imgs[0]
       );
       const btn = document.createElement("a");
       btn.className = "link-btn";
