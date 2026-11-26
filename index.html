@@ -13,8 +13,27 @@
       font-family: Arial, sans-serif;
       background: #f5f5f5;
       margin: 0;
-      padding: 15px;
+      padding: 8px 15px 15px;
       color: #222;
+    }
+
+    /* উপরের বাম কোণার ছোট্ট গোপন তীর বাটন */
+    .top-corner-bar {
+      max-width: 900px;
+      margin: 0 auto 4px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .corner-arrow-btn {
+      background: none;
+      border: none;
+      color: #b5bac2;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 1;
+      padding: 2px 12px 4px 2px;
+      cursor: pointer;
     }
 
     /* হেডার ব্যানার লোগো */
@@ -130,7 +149,7 @@
     }
     @media (min-width: 700px) {
       body {
-        padding: 20px;
+        padding: 10px 20px 20px;
       }
       .grid {
         grid-template-columns: repeat(3, 1fr);
@@ -258,20 +277,76 @@
       cursor: pointer;
     }
 
-    /* ফুটার ও অ্যাডমিন লগইন বাটন */
-    footer {
+    /* ফুটার */
+    footer.subtle-footer {
       max-width: 900px;
-      margin: 30px auto 10px;
-      padding-top: 15px;
-      border-top: 1px solid #ddd;
+      margin: 30px auto 8px;
+      padding-top: 12px;
+      border-top: 1px solid #e5e7eb;
       text-align: center;
     }
-    .admin-entry-btn {
-      background: #222;
+    .footer-copy {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    /* গোপন মেনু ও Settings & Privacy পপআপ */
+    .qm-card {
+      background: #fff;
+      width: 100%;
+      max-width: 340px;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+      text-align: left;
+    }
+    .qm-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .qm-head h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #111;
+    }
+    .qm-opt-btn {
+      width: 100%;
+      background: #f3f4f6;
+      color: #222;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 11px 12px;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .privacy-sub {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+    }
+    .privacy-sub-note {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .admin-inner-btn {
+      width: 100%;
+      background: #111;
       color: #fff;
       border: none;
-      padding: 10px 18px;
       border-radius: 6px;
+      padding: 10px;
       font-size: 14px;
       font-weight: bold;
       cursor: pointer;
@@ -717,6 +792,11 @@
 
   <!-- ==================== কাস্টমার ভিউ ==================== -->
   <div id="customerView">
+    <!-- একদম উপরের বাম কোণায় ছোট্ট গোপন তীর (›) -->
+    <div class="top-corner-bar">
+      <button class="corner-arrow-btn" id="openMenuBtn" type="button" aria-label="Options">›</button>
+    </div>
+
     <header class="banner-header">
       <img
         src="banner.jpg"
@@ -744,8 +824,8 @@
     <div class="grid" id="productGrid"></div>
     <div class="status-msg" id="statusMsg">লোড হচ্ছে... / Loading products...</div>
 
-    <footer>
-      <button class="admin-entry-btn" id="openAdminEntryBtn" type="button">🔒 Admin Login</button>
+    <footer class="subtle-footer">
+      <span class="footer-copy">© Adib Gadget Gallery-2</span>
     </footer>
   </div>
 
@@ -776,6 +856,8 @@
           <option value="Power Banks">Power Banks</option>
           <option value="Smart Watch">Smart Watch</option>
           <option value="Microphone">Microphone</option>
+          <option value="Trimmer">Trimmer</option>
+          <option value="Speakers">Speakers</option>
         </select>
       </div>
 
@@ -814,6 +896,26 @@
         <input type="text" id="adminSearchInput" placeholder="অ্যাডমিন লিস্টে খুঁজুন..." />
       </div>
       <div id="adminProductList"></div>
+    </div>
+  </div>
+
+  <!-- ==================== গোপন Settings & Privacy পপআপ ==================== -->
+  <div class="modal-bg" id="quickMenuModal">
+    <div class="qm-card">
+      <div class="qm-head">
+        <h3>Menu</h3>
+        <button class="dm-close" id="qmClose" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <button class="qm-opt-btn" id="settingsPrivacyBtn" type="button">
+        <span>🛡️ Settings &amp; Privacy</span>
+        <span id="spArrow">▾</span>
+      </button>
+
+      <div class="privacy-sub" id="privacySubMenu">
+        <div class="privacy-sub-note">Security &amp; Store Management</div>
+        <button class="admin-inner-btn" id="adminLoginMenuBtn" type="button">🔒 Admin &amp; Login</button>
+      </div>
     </div>
   </div>
 
@@ -908,7 +1010,9 @@
       "Adapter",
       "Power Banks",
       "Smart Watch",
-      "Microphone"
+      "Microphone",
+      "Trimmer",
+      "Speakers"
     ];
 
     let allProducts = [];
@@ -928,7 +1032,14 @@
     const catArrow = document.getElementById("catArrow");
     const catMenu = document.getElementById("catMenu");
 
-    const openAdminEntryBtn = document.getElementById("openAdminEntryBtn");
+    const openMenuBtn = document.getElementById("openMenuBtn");
+    const quickMenuModal = document.getElementById("quickMenuModal");
+    const qmClose = document.getElementById("qmClose");
+    const settingsPrivacyBtn = document.getElementById("settingsPrivacyBtn");
+    const spArrow = document.getElementById("spArrow");
+    const privacySubMenu = document.getElementById("privacySubMenu");
+    const adminLoginMenuBtn = document.getElementById("adminLoginMenuBtn");
+
     const loginModal = document.getElementById("loginModal");
     const loginEmail = document.getElementById("loginEmail");
     const loginPass = document.getElementById("loginPass");
@@ -1050,7 +1161,7 @@
 
       if (allProducts.length === 0) {
         statusMsg.style.display = "block";
-        statusMsg.textContent = "এখনো কোনো প্রোডাক্ট যোগ করা হয়নি। নিচে Admin Login থেকে প্রোডাক্ট যোগ করুন।";
+        statusMsg.textContent = "এখনো কোনো প্রোডাক্ট যোগ করা হয়নি।";
         return;
       }
 
@@ -1299,14 +1410,47 @@
       renderAdminList();
     }
 
-    // ==================== লগইন ও অ্যাডমিন প্যানেল ====================
+    // ==================== গোপন মেনু, লগইন ও অ্যাডমিন প্যানেল ====================
     function updateAuthUI() {
       if (currentSession) {
-        openAdminEntryBtn.textContent = "⚙️ Admin Panel খুলুন";
+        adminLoginMenuBtn.textContent = "⚙️ Admin Panel খুলুন";
       } else {
-        openAdminEntryBtn.textContent = "🔒 Admin Login";
+        adminLoginMenuBtn.textContent = "🔒 Admin & Login";
       }
     }
+
+    function closeQuickMenu() {
+      quickMenuModal.classList.remove("open");
+      privacySubMenu.style.display = "none";
+      spArrow.textContent = "▾";
+    }
+
+    openMenuBtn.addEventListener("click", function () {
+      privacySubMenu.style.display = "none";
+      spArrow.textContent = "▾";
+      quickMenuModal.classList.add("open");
+    });
+
+    qmClose.addEventListener("click", closeQuickMenu);
+    quickMenuModal.addEventListener("click", function (e) {
+      if (e.target === quickMenuModal) closeQuickMenu();
+    });
+
+    settingsPrivacyBtn.addEventListener("click", function () {
+      const isShown = privacySubMenu.style.display === "block";
+      privacySubMenu.style.display = isShown ? "none" : "block";
+      spArrow.textContent = isShown ? "▾" : "▴";
+    });
+
+    adminLoginMenuBtn.addEventListener("click", function () {
+      closeQuickMenu();
+      if (currentSession) {
+        showAdminPanel();
+      } else {
+        loginErr.style.display = "none";
+        loginModal.classList.add("open");
+      }
+    });
 
     function showAdminPanel() {
       customerView.style.display = "none";
@@ -1320,15 +1464,6 @@
       customerView.style.display = "block";
       window.scrollTo(0, 0);
     }
-
-    openAdminEntryBtn.addEventListener("click", function () {
-      if (currentSession) {
-        showAdminPanel();
-      } else {
-        loginErr.style.display = "none";
-        loginModal.classList.add("open");
-      }
-    });
 
     loginCancelBtn.addEventListener("click", function () {
       loginModal.classList.remove("open");
