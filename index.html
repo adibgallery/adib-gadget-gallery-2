@@ -927,11 +927,15 @@
       <div class="admin-status" id="adminStatus"></div>
     </div>
 
-    <!-- প্রোডাক্ট ম্যানেজ লিস্ট -->
+    <!-- প্রোডাক্ট ম্যানেজ লিস্ট (ক্যাটাগরি ফিল্টার ও সার্চসহ) -->
     <div class="admin-card">
       <h3>📦 সব প্রোডাক্ট (<span id="adminTotalCount">0</span>)</h3>
       <div class="form-group">
-        <input type="text" id="adminSearchInput" placeholder="অ্যাডমিন লিস্টে খুঁজুন..." />
+        <label for="adminCatFilter">ক্যাটাগরি অনুযায়ী দেখুন:</label>
+        <select id="adminCatFilter"></select>
+      </div>
+      <div class="form-group">
+        <input type="text" id="adminSearchInput" placeholder="অ্যাডমিন লিস্টে নাম লিখে খুঁজুন..." />
       </div>
       <div id="adminProductList"></div>
     </div>
@@ -1098,6 +1102,7 @@
     const cancelEditBtn = document.getElementById("cancelEditBtn");
     const adminStatus = document.getElementById("adminStatus");
     const adminTotalCount = document.getElementById("adminTotalCount");
+    const adminCatFilter = document.getElementById("adminCatFilter");
     const adminSearchInput = document.getElementById("adminSearchInput");
     const adminProductList = document.getElementById("adminProductList");
 
@@ -1154,12 +1159,10 @@
         soldBtn.textContent = "Sold Out";
         return soldBtn;
       }
-      const imgs = getImages(item);
       const waText = encodeURIComponent(
         "আসসালামুআলাইকুম, আমি এই প্রোডাক্টটি অর্ডার করতে চাই:\n" +
         "প্রোডাক্ট: " + item.name + "\n" +
-        "দাম: " + item.price + "\n" +
-        "ছবি: " + imgs[0]
+        "দাম: " + item.price
       );
       const btn = document.createElement("a");
       btn.className = "link-btn";
@@ -1190,6 +1193,18 @@
         });
         catMenu.appendChild(btn);
       });
+    }
+
+    function renderAdminCatFilter() {
+      const prevVal = adminCatFilter.value || "All Products";
+      adminCatFilter.innerHTML = "";
+      categories.forEach(function (cat) {
+        const opt = document.createElement("option");
+        opt.value = cat;
+        opt.textContent = cat === "All Products" ? "সব ক্যাটাগরি (All Products)" : cat;
+        adminCatFilter.appendChild(opt);
+      });
+      adminCatFilter.value = prevVal;
     }
 
     catToggle.addEventListener("click", function () {
@@ -1709,8 +1724,13 @@
 
     function renderAdminList() {
       const query = (adminSearchInput.value || "").trim().toLowerCase();
+      const selectedAdminCat = adminCatFilter.value || "All Products";
+      const targetCat = normalizeCat(selectedAdminCat);
+
       const filtered = allProducts.filter(function (item) {
-        return (item.name || "").toLowerCase().includes(query) || (item.cat || "").toLowerCase().includes(query);
+        const matchesCat = selectedAdminCat === "All Products" || normalizeCat(item.cat) === targetCat;
+        const matchesSearch = (item.name || "").toLowerCase().includes(query) || (item.cat || "").toLowerCase().includes(query);
+        return matchesCat && matchesSearch;
       });
 
       adminTotalCount.textContent = allProducts.length;
@@ -1719,7 +1739,9 @@
       if (filtered.length === 0) {
         const p = document.createElement("p");
         p.style.color = "#666";
-        p.textContent = "কোনো প্রোডাক্ট নেই। ওপরের ফর্ম থেকে যোগ করুন।";
+        p.textContent = allProducts.length === 0
+          ? "কোনো প্রোডাক্ট নেই। ওপরের ফর্ম থেকে যোগ করুন।"
+          : "এই ক্যাটাগরিতে বা নামে কোনো প্রোডাক্ট পাওয়া যায়নি।";
         adminProductList.appendChild(p);
         return;
       }
@@ -1812,11 +1834,13 @@
       });
     }
 
+    adminCatFilter.addEventListener("change", renderAdminList);
     adminSearchInput.addEventListener("input", renderAdminList);
 
     // ==================== পেজ চালু হলে প্রথম রান ====================
     async function init() {
       renderCategories();
+      renderAdminCatFilter();
       const { data } = await sb.auth.getSession();
       currentSession = data ? data.session : null;
       updateAuthUI();
