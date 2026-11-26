@@ -30,6 +30,7 @@ const categories = [
 
 let allProducts = [];
 let selectedCategory = "All Products";
+let sortOrder = "default";
 let currentSession = null;
 let editingProduct = null;
 let currentImages = [];
@@ -42,6 +43,7 @@ const $ = (id) => document.getElementById(id);
 const activeCountEl = $("activeCount"), todayCountEl = $("todayCount");
 const customerView = $("customerView"), adminPanel = $("adminPanel");
 const grid = $("productGrid"), statusMsg = $("statusMsg"), searchInput = $("searchInput");
+const sortDefault = $("sortDefault"), sortLow = $("sortLow"), sortHigh = $("sortHigh");
 const catToggle = $("catToggle"), catToggleText = $("catToggleText"), catArrow = $("catArrow"), catMenu = $("catMenu");
 const openMenuBtn = $("openMenuBtn"), quickMenuModal = $("quickMenuModal"), qmClose = $("qmClose");
 const settingsPrivacyBtn = $("settingsPrivacyBtn"), spArrow = $("spArrow"), privacySubMenu = $("privacySubMenu"), adminLoginMenuBtn = $("adminLoginMenuBtn");
@@ -120,6 +122,15 @@ function normalizeCat(str) {
   return (str || "").toLowerCase().replace(/\s+/g, "").replace(/neckbend/g, "neckband").replace(/s$/, "");
 }
 
+function parsePrice(str) {
+  if (!str) return 0;
+  const bnToEn = { "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4", "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9" };
+  const normalized = String(str).replace(/[০-৯]/g, function (d) { return bnToEn[d]; });
+  const digits = normalized.replace(/[^\d.]/g, "");
+  const num = parseFloat(digits);
+  return isNaN(num) ? 0 : num;
+}
+
 function getImages(item) {
   return Array.isArray(item.imgs) && item.imgs.length > 0 ? item.imgs : ["https://placehold.co/300x300?text=No+Image"];
 }
@@ -177,6 +188,18 @@ catToggle.addEventListener("click", function () {
   catArrow.textContent = isOpen ? "▴" : "▾";
 });
 
+function setSortOrder(order) {
+  sortOrder = order;
+  if (sortDefault) sortDefault.classList.toggle("active", order === "default");
+  if (sortLow) sortLow.classList.toggle("active", order === "low");
+  if (sortHigh) sortHigh.classList.toggle("active", order === "high");
+  filterAndRender();
+}
+
+if (sortDefault) sortDefault.addEventListener("click", function () { setSortOrder("default"); });
+if (sortLow) sortLow.addEventListener("click", function () { setSortOrder("low"); });
+if (sortHigh) sortHigh.addEventListener("click", function () { setSortOrder("high"); });
+
 function renderProducts(list) {
   grid.innerHTML = "";
   if (allProducts.length === 0) {
@@ -198,7 +221,7 @@ function renderProducts(list) {
       searchInput.value = "";
       catToggleText.textContent = "☰ Categories / ক্যাটাগরি দেখুন";
       renderCategories();
-      filterAndRender();
+      setSortOrder("default");
     });
     statusMsg.appendChild(msg);
     statusMsg.appendChild(reset);
@@ -270,6 +293,11 @@ function filterAndRender() {
     const matchesSearch = (item.name || "").toLowerCase().includes(query);
     return matchesCat && matchesSearch;
   });
+  if (sortOrder === "low") {
+    filtered.sort(function (a, b) { return parsePrice(a.price) - parsePrice(b.price); });
+  } else if (sortOrder === "high") {
+    filtered.sort(function (a, b) { return parsePrice(b.price) - parsePrice(a.price); });
+  }
   renderProducts(filtered);
 }
 searchInput.addEventListener("input", filterAndRender);
