@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Adib Gadget Gallery-2</title>
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <div id="customerView">
@@ -48,6 +48,13 @@
 
     <div class="search-wrap">
       <input type="text" id="searchInput" placeholder="Search product... / প্রোডাক্টের নাম লিখে খুঁজুন..." />
+    </div>
+
+    <div class="sort-bar">
+      <span class="sort-label">Sort:</span>
+      <button class="sort-btn active" id="sortDefault" type="button">New</button>
+      <button class="sort-btn" id="sortLow" type="button">Lowest Price ↑</button>
+      <button class="sort-btn" id="sortHigh" type="button">Highest Price ↓</button>
     </div>
 
     <div class="grid" id="productGrid"></div>
@@ -154,7 +161,7 @@
     <div class="lb-bottom"><button class="lb-btn" id="prevBtn" type="button">◀ Prev</button><span class="lb-counter" id="lbCounter">1 / 1</span><button class="lb-btn" id="nextBtn" type="button">Next ▶</button></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="app.js?v=4"></script>
 </body>
 </html>
