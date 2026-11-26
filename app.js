@@ -1,7 +1,26 @@
 const SHOP_WHATSAPP = "8801868963749";
 const SUPABASE_URL = "https://hmhnmbrlktvgxqqcokwe.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_1MEJRrIvv1mB1MCXtwCWLA_fCmREPnk";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let sb = null;
+
+function getSupabase() {
+  if (sb) return sb;
+  if (window.supabase && typeof window.supabase.createClient === "function") {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  }
+  return sb;
+}
+
+function ensureSupabaseReady(cb) {
+  if (getSupabase()) { cb(sb); return; }
+  const existing = document.getElementById("sbFallbackScript");
+  if (existing) return;
+  const s = document.createElement("script");
+  s.id = "sbFallbackScript";
+  s.src = "https://unpkg.com/@supabase/supabase-js@2";
+  s.onload = function () { if (getSupabase()) cb(sb); };
+  document.head.appendChild(s);
+}
 
 const categories = [
   "All Products", "Earbuds", "Neckband", "Headphones", "Earphones",
@@ -47,34 +66,52 @@ function getTodayBD() {
 async function trackTodayVisits() {
   const todayBD = getTodayBD();
   const storageKey = "adib_visit_bd_date";
+  const headers = { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" };
   try {
     if (localStorage.getItem(storageKey) !== todayBD) {
-      const { data, error } = await sb.rpc("increment_daily_visit");
-      if (!error && typeof data === "number") {
-        localStorage.setItem(storageKey, todayBD);
-        todayCountEl.textContent = data;
-        return;
+      const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/increment_daily_visit", { method: "POST", headers: headers, body: "{}" });
+      if (res.ok) {
+        const count = await res.json();
+        if (typeof count === "number") {
+          localStorage.setItem(storageKey, todayBD);
+          todayCountEl.textContent = count;
+          return;
+        }
       }
     }
-    const { data: rowData } = await sb.from("daily_visits").select("visit_count").eq("visit_date", todayBD).maybeSingle();
-    if (rowData && typeof rowData.visit_count === "number") todayCountEl.textContent = rowData.visit_count;
+    const res2 = await fetch(SUPABASE_URL + "/rest/v1/daily_visits?select=visit_count&visit_date=eq." + todayBD, { headers: headers });
+    if (res2.ok) {
+      const rows = await res2.json();
+      if (Array.isArray(rows) && rows[0] && typeof rows[0].visit_count === "number") {
+        todayCountEl.textContent = rows[0].visit_count;
+      }
+    }
   } catch (e) {}
 }
 
-function trackActiveVisitors() {
+function trackActiveVisitors(client) {
   try {
     let visitorKey = sessionStorage.getItem("adib_live_vid");
     if (!visitorKey) {
       visitorKey = "v_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
       sessionStorage.setItem("adib_live_vid", visitorKey);
     }
-    const channel = sb.channel("adib-live-visitors", { config: { presence: { key: visitorKey } } });
-    channel.on("presence", { event: "sync" }, function () {
+    const channel = client.channel("adib-live-visitors", {
+      config: { presence: { key: visitorKey, enabled: true } }
+    });
+    function updateCount() {
       const count = Object.keys(channel.presenceState()).length;
       activeCountEl.textContent = count > 0 ? count : 1;
-    });
+    }
+    channel
+      .on("presence", { event: "sync" }, updateCount)
+      .on("presence", { event: "join" }, updateCount)
+      .on("presence", { event: "leave" }, updateCount);
     channel.subscribe(async function (status) {
-      if (status === "SUBSCRIBED") await channel.track({ online_at: new Date().toISOString() });
+      if (status === "SUBSCRIBED") {
+        await channel.track({ online_at: new Date().toISOString() });
+        updateCount();
+      }
     });
   } catch (e) { activeCountEl.textContent = "1"; }
 }
@@ -317,16 +354,46 @@ document.addEventListener("keydown", function (e) {
   } else if (detailsModal.classList.contains("open") && e.key === "Escape") closeDetailsModal();
 });
 
+function loadCachedProducts() {
+  try {
+    const raw = localStorage.getItem("adib_products_cache");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        allProducts = parsed;
+        filterAndRender();
+      }
+    }
+  } catch (e) {}
+}
+
 async function loadProducts() {
-  const { data, error } = await sb.from("products").select("*").order("created_at", { ascending: false });
-  if (error) {
-    statusMsg.style.display = "block";
-    statusMsg.textContent = "ডাটা লোড সমস্যা: " + error.message;
-    return;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(function () { controller.abort(); }, 12000);
+    const res = await fetch(SUPABASE_URL + "/rest/v1/products?select=*&order=created_at.desc", {
+      headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Authorization: "Bearer " + SUPABASE_PUBLISHABLE_KEY },
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    allProducts = Array.isArray(data) ? data : [];
+    try { localStorage.setItem("adib_products_cache", JSON.stringify(allProducts)); } catch (e) {}
+    filterAndRender();
+    renderAdminList();
+  } catch (err) {
+    if (allProducts.length === 0) {
+      statusMsg.style.display = "block";
+      statusMsg.innerHTML = "";
+      const d = document.createElement("div");
+      d.textContent = "লোড হতে সমস্যা হয়েছে (" + (err.message || "Network error") + ")";
+      const r = document.createElement("button");
+      r.type = "button"; r.className = "reset-btn"; r.textContent = "আবার চেষ্টা করুন / Retry";
+      r.addEventListener("click", function () { statusMsg.textContent = "লোড হচ্ছে..."; loadProducts(); });
+      statusMsg.appendChild(d); statusMsg.appendChild(r);
+    }
   }
-  allProducts = data || [];
-  filterAndRender();
-  renderAdminList();
 }
 
 function updateAuthUI() {
@@ -340,9 +407,7 @@ function closeQuickMenu() {
 }
 
 openMenuBtn.addEventListener("click", function () {
-  privacySubMenu.style.display = "none";
-  spArrow.textContent = "▾";
-  quickMenuModal.classList.add("open");
+  privacySubMenu.style.display = "none"; spArrow.textContent = "▾"; quickMenuModal.classList.add("open");
 });
 qmClose.addEventListener("click", closeQuickMenu);
 quickMenuModal.addEventListener("click", function (e) { if (e.target === quickMenuModal) closeQuickMenu(); });
@@ -365,8 +430,10 @@ loginSubmitBtn.addEventListener("click", async function () {
   const email = loginEmail.value.trim(), password = loginPass.value;
   loginErr.style.display = "none";
   if (!email || !password) { loginErr.textContent = "ইমেইল এবং পাসওয়ার্ড দুটোই দিন।"; loginErr.style.display = "block"; return; }
+  const client = getSupabase();
+  if (!client) { loginErr.textContent = "সিস্টেম লোড হচ্ছে, ৫ সেকেন্ড পর আবার চেষ্টা করুন।"; loginErr.style.display = "block"; ensureSupabaseReady(function(){}); return; }
   loginSubmitBtn.disabled = true; loginSubmitBtn.textContent = "চেক করা হচ্ছে...";
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
   loginSubmitBtn.disabled = false; loginSubmitBtn.textContent = "Login / লগইন";
   if (error || !data.session) { loginErr.textContent = "ভুল ইমেইল বা পাসওয়ার্ড! এটি শুধুমাত্র Owner ও Admin-দের জন্য।"; loginErr.style.display = "block"; return; }
   currentSession = data.session; loginPass.value = ""; loginModal.classList.remove("open");
@@ -375,7 +442,9 @@ loginSubmitBtn.addEventListener("click", async function () {
 
 backToShopBtn.addEventListener("click", showCustomerView);
 logoutBtn.addEventListener("click", async function () {
-  await sb.auth.signOut(); currentSession = null; resetAdminForm(); updateAuthUI(); showCustomerView();
+  const client = getSupabase();
+  if (client) await client.auth.signOut();
+  currentSession = null; resetAdminForm(); updateAuthUI(); showCustomerView();
 });
 
 function compressImage(file) {
@@ -398,15 +467,15 @@ function compressImage(file) {
   });
 }
 
-async function uploadSelectedFiles(files) {
+async function uploadSelectedFiles(client, files) {
   const uploadedUrls = [];
   for (let i = 0; i < files.length; i++) {
     adminStatus.textContent = "ছবি ছোট করে আপলোড হচ্ছে (" + (i + 1) + "/" + files.length + ")...";
     const compressedBlob = await compressImage(files[i]);
     const fileName = Date.now() + "_" + i + "_" + Math.random().toString(36).slice(2, 7) + ".jpg";
-    const { error: uploadError } = await sb.storage.from("product-images").upload(fileName, compressedBlob, { contentType: "image/jpeg" });
+    const { error: uploadError } = await client.storage.from("product-images").upload(fileName, compressedBlob, { contentType: "image/jpeg" });
     if (uploadError) throw uploadError;
-    const { data: urlData } = sb.storage.from("product-images").getPublicUrl(fileName);
+    const { data: urlData } = client.storage.from("product-images").getPublicUrl(fileName);
     uploadedUrls.push(urlData.publicUrl);
   }
   return uploadedUrls;
@@ -424,6 +493,8 @@ function resetAdminForm() {
 cancelEditBtn.addEventListener("click", function () { resetAdminForm(); adminStatus.textContent = ""; });
 
 saveProductBtn.addEventListener("click", async function () {
+  const client = getSupabase();
+  if (!client) { adminStatus.textContent = "❌ নেটওয়ার্ক সমস্যা, পেজ রিফ্রেশ করুন।"; return; }
   const cat = pCat.value, name = pName.value.trim(), details = pDetails.value.trim(), files = pFiles.files;
   let price = pPrice.value.trim();
   if (!name || !price) { adminStatus.textContent = "❌ প্রোডাক্টের নাম এবং দাম অবশ্যই লিখুন!"; return; }
@@ -434,16 +505,16 @@ saveProductBtn.addEventListener("click", async function () {
   try {
     let finalImgs = editingProduct ? getImages(editingProduct) : [];
     if (files.length > 0) {
-      const newUrls = await uploadSelectedFiles(files);
-      if (editingProduct) await deleteStorageImages(editingProduct.imgs);
+      const newUrls = await uploadSelectedFiles(client, files);
+      if (editingProduct) await deleteStorageImages(client, editingProduct.imgs);
       finalImgs = newUrls;
     }
     if (editingProduct) {
-      const { error } = await sb.from("products").update({ cat, name, price, details, imgs: finalImgs, link: "#" }).eq("id", editingProduct.id);
+      const { error } = await client.from("products").update({ cat, name, price, details, imgs: finalImgs, link: "#" }).eq("id", editingProduct.id);
       if (error) throw error;
       adminStatus.textContent = "✅ প্রোডাক্ট আপডেট হয়ে গেছে!";
     } else {
-      const { error } = await sb.from("products").insert([{ cat, name, price, details, imgs: finalImgs, sold_out: false, link: "#" }]);
+      const { error } = await client.from("products").insert([{ cat, name, price, details, imgs: finalImgs, sold_out: false, link: "#" }]);
       if (error) throw error;
       adminStatus.textContent = "✅ নতুন প্রোডাক্ট ওয়েবসাইটে যোগ হয়ে গেছে!";
     }
@@ -456,4 +527,94 @@ saveProductBtn.addEventListener("click", async function () {
   }
 });
 
-async function deleteStorageImages(
+async function deleteStorageImages(client, imgs) {
+  if (!client || !Array.isArray(imgs)) return;
+  const paths = [];
+  imgs.forEach(function (url) {
+    if (typeof url === "string" && url.includes("/product-images/")) {
+      const parts = url.split("/product-images/");
+      if (parts[1]) paths.push(parts[1]);
+    }
+  });
+  if (paths.length > 0) await client.storage.from("product-images").remove(paths);
+}
+
+function renderAdminList() {
+  const query = (adminSearchInput.value || "").trim().toLowerCase();
+  const selectedAdminCat = adminCatFilter.value || "All Products";
+  const targetCat = normalizeCat(selectedAdminCat);
+  const filtered = allProducts.filter(function (item) {
+    const matchesCat = selectedAdminCat === "All Products" || normalizeCat(item.cat) === targetCat;
+    const matchesSearch = (item.name || "").toLowerCase().includes(query) || (item.cat || "").toLowerCase().includes(query);
+    return matchesCat && matchesSearch;
+  });
+
+  adminTotalCount.textContent = allProducts.length;
+  adminProductList.innerHTML = "";
+  if (filtered.length === 0) {
+    const p = document.createElement("p");
+    p.style.color = "#666";
+    p.textContent = allProducts.length === 0 ? "কোনো প্রোডাক্ট নেই। ওপরের ফর্ম থেকে যোগ করুন।" : "এই ক্যাটাগরিতে বা নামে কোনো প্রোডাক্ট পাওয়া যায়নি।";
+    adminProductList.appendChild(p);
+    return;
+  }
+
+  filtered.forEach(function (item) {
+    const imgs = getImages(item);
+    const row = document.createElement("div"); row.className = "admin-list-item";
+    const left = document.createElement("div"); left.className = "admin-item-left";
+    const thumb = document.createElement("img"); thumb.src = imgs[0]; thumb.alt = item.name;
+    const info = document.createElement("div"); info.className = "admin-item-info";
+    const nameEl = document.createElement("div"); nameEl.className = "admin-item-name"; nameEl.textContent = item.name + (item.sold_out ? " [SOLD OUT]" : "");
+    const metaEl = document.createElement("div"); metaEl.className = "admin-item-meta"; metaEl.textContent = (item.cat || "Uncategorized") + " • " + item.price + " • ছবি: " + imgs.length + "টি";
+    info.appendChild(nameEl); info.appendChild(metaEl); left.appendChild(thumb); left.appendChild(info);
+
+    const btns = document.createElement("div"); btns.className = "admin-item-btns";
+    const soldBtn = document.createElement("button"); soldBtn.type = "button";
+    soldBtn.className = "btn-small " + (item.sold_out ? "btn-instock" : "btn-sold");
+    soldBtn.textContent = item.sold_out ? "✓ আবার চালু" : "Sold Out";
+    soldBtn.addEventListener("click", async function () {
+      const client = getSupabase(); if (!client) return;
+      soldBtn.disabled = true; await client.from("products").update({ sold_out: !item.sold_out }).eq("id", item.id); await loadProducts();
+    });
+
+    const editBtn = document.createElement("button"); editBtn.type = "button"; editBtn.className = "btn-small btn-edit"; editBtn.textContent = "✏️ Edit";
+    editBtn.addEventListener("click", function () {
+      editingProduct = item; formTitle.textContent = "✏️ প্রোডাক্ট এডিট করুন";
+      pCat.value = item.cat || "Earbuds"; pName.value = item.name || ""; pPrice.value = item.price || ""; pDetails.value = item.details || ""; pFiles.value = "";
+      photoNote.textContent = "নতুন ছবি সিলেক্ট না করলে আগের ছবিগুলোই থেকে যাবে। নতুন দিলে আগের ছবি বদলে যাবে।";
+      saveProductBtn.textContent = "✅ আপডেট সেভ করুন"; cancelEditBtn.style.display = "inline-block"; adminStatus.textContent = ""; window.scrollTo(0, 0);
+    });
+
+    const delBtn = document.createElement("button"); delBtn.type = "button"; delBtn.className = "btn-small btn-del"; delBtn.textContent = "🗑️ Delete";
+    delBtn.addEventListener("click", async function () {
+      if (!confirm("আপনি কি নিশ্চিত '" + item.name + "' প্রোডাক্টটি ডিলিট করতে চান?")) return;
+      const client = getSupabase(); if (!client) return;
+      delBtn.disabled = true; await deleteStorageImages(client, item.imgs); await client.from("products").delete().eq("id", item.id); await loadProducts();
+    });
+
+    btns.appendChild(soldBtn); btns.appendChild(editBtn); btns.appendChild(delBtn);
+    row.appendChild(left); row.appendChild(btns);
+    adminProductList.appendChild(row);
+  });
+}
+
+adminCatFilter.addEventListener("change", renderAdminList);
+adminSearchInput.addEventListener("input", renderAdminList);
+
+function init() {
+  renderCategories();
+  renderAdminCatFilter();
+  loadCachedProducts();
+  loadProducts();
+  trackTodayVisits();
+  ensureSupabaseReady(function (client) {
+    trackActiveVisitors(client);
+    client.auth.getSession().then(function (res) {
+      currentSession = res && res.data ? res.data.session : null;
+      updateAuthUI();
+    }).catch(function () {});
+  });
+}
+
+init();
